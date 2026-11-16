@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mariposas</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial, sans-serif;
+}
+
+body{
+  background-image:url("https://w.wallhaven.cc/full/5d/wallhaven-5dw9j9.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
+#app{
+  position:relative;
+  width:100%;
+  height:100%;
+}
+
+#hero{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  z-index:5;
+  text-align:center;
+  color:white;
+  text-shadow:0 0 10px black;
+}
+
+.author{
+  position:fixed;
+  bottom:20px;
+  width:100%;
+  text-align:center;
+  color:white;
+  font-size:18px;
+  letter-spacing:3px;
+  font-weight:bold;
+  z-index:10;
+  text-shadow:
+    0 0 10px rgba(0,0,0,0.9),
+    0 0 20px rgba(0,0,0,0.9);
+}
+
+#music-toggle{
+  position:fixed;
+  top:20px;
+  right:20px;
+  z-index:20;
+  border:1px solid rgba(255,255,255,0.5);
+  border-radius:999px;
+  padding:10px 18px;
+  background:rgba(255,255,255,0.12);
+  color:#fff;
+  font-size:13px;
+  font-weight:bold;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  box-shadow:0 0 16px rgba(0,0,0,0.25);
+  backdrop-filter:blur(5px);
+  cursor:pointer;
+  transition:all 0.25s ease;
+}
+
+#music-toggle:hover{
+  transform:translateY(-1px) scale(1.02);
+  background:rgba(255,255,255,0.22);
+}
+
+#music-toggle.is-playing{
+  background:rgba(120,255,180,0.18);
+  border-color:rgba(120,255,180,0.8);
+  box-shadow:0 0 18px rgba(120,255,180,0.3);
+}
+
+@media (max-width:600px){
+  html,body,#app{
+    height:100dvh;
+  }
+
+  #music-toggle{
+    top:max(12px, env(safe-area-inset-top));
+    right:max(12px, env(safe-area-inset-right));
+    padding:10px 14px;
+    font-size:12px;
+  }
+
+  .author{
+    bottom:max(12px, env(safe-area-inset-bottom));
+    padding:0 12px;
+    font-size:14px;
+    letter-spacing:2px;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="app"></div>
+
+<button id="music-toggle" type="button" aria-label="Reproducir música">▶ Música</button>
+<audio id="bg-music" src="./cancion.mp3" autoplay loop preload="auto"></audio>
+
+<script src="./music.js"></script>
+
+<script>
+const music = document.getElementById('bg-music');
+const musicToggle = document.getElementById('music-toggle');
+
+if (music && musicToggle) {
+  const defaultTrack = window.MUSIC_SRC || music.getAttribute('src') || './cancion.mp3';
+  music.volume = 0.25;
+
+  const setButtonState = (isPlaying) => {
+    musicToggle.classList.toggle('is-playing', isPlaying);
+    musicToggle.textContent = isPlaying ? '♫ Música ON' : '♫ Música OFF';
+  };
+
+  const showPlaybackHelp = () => {
+    setButtonState(false);
+    musicToggle.textContent = '♫ Toca para sonar';
+  };
+
+  music.addEventListener('play', () => setButtonState(true));
+  music.addEventListener('pause', () => setButtonState(false));
+
+  const toggleMusic = async () => {
+    if (music.paused) {
+      try {
+        await music.play();
+      } catch (error) {
+        showPlaybackHelp();
+        console.error('No se pudo reproducir la música:', error);
+      }
+      return;
+    }
+
+    music.pause();
+  };
+
+  musicToggle.addEventListener('click', toggleMusic);
+
+  setButtonState(false);
+
+  music.src = defaultTrack;
+  music.load();
+  music.play().catch((error) => {
+    showPlaybackHelp();
+    console.info('El navegador bloqueó la reproducción automática; pulsa el botón de música.', error);
+  });
+}
+</script>
+
+<script type="module">
+
+import {
+  butterfliesBackground
+} from 'https://unpkg.com/threejs-toys@0.0.8/build/threejs-toys.module.cdn.min.js'
+
+const scene = butterfliesBackground({
+
+  el: document.getElementById('app'),
+  eventsEl: document.body,
+
+  gpgpuSize:18,
+
+  background: 0x000000,
+
+  material:'phong',
+
+  lights:[
+    {
+      type:'ambient',
+      params:[0xffffff,0.7]
+    },
+
+    {
+      type:'directional',
+      params:[0xffffff,1],
+      props:{
+        position:[10,0,0]
+      }
+    }
+  ],
+
+  materialParams:{
+    transparent:true,
+    alphaTest:0.5
+  },
+
+  texture:'https://assets.codepen.io/33787/butterflies.png',
+
+  textureCount:4,
+
+  wingsScale:[2,2,2],
+
+  wingsWidthSegments:16,
+  wingsHeightSegments:16,
+
+  wingsSpeed:0.75,
+  wingsDisplacementScale:1.25,
+
+  noiseCoordScale:0.01,
+  noiseTimeCoef:0.0005,
+  noiseIntensity:0.0025,
+
+  attractionRadius1:100,
+  attractionRadius2:150,
+
+  maxVelocity:0.1
+
+})
+
+setTimeout(() => {
+
+  const canvas = document.querySelector("canvas");
+
+  if(canvas){
+
+    canvas.style.background = "transparent";
+
+    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+
+    if(gl){
+      gl.clearColor(0,0,0,0);
+    }
+
+  }
+
+},500);
+
+
+</script>
+
+</body>
+</html>
